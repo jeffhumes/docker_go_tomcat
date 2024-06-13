@@ -1,0 +1,22 @@
+#!/bin/bash 
+#
+
+. go.conf
+
+for FILE in go Dockerfile conf/server.xml
+do
+	echo "Updating instances of _INTERNAL_HTTP_PORT_ to ${INTERNAL_HTTP_PORT} in ${FILE}"
+	perl -i -ple "s/_INTERNAL_HTTP_PORT_/${INTERNAL_HTTP_PORT}/g" ${FILE}
+
+	echo "Updating instances of _INTERNAL_HTTPS_PORT_ to ${INTERNAL_HTTPS_PORT} in ${FILE}"
+	perl -i -ple "s/_INTERNAL_HTTPS_PORT_/${INTERNAL_HTTPS_PORT}/g" ${FILE}
+
+	echo "Updating instances of _WELL_KNOWN_HTTP_PORT_ to ${EXTERNAL_HTTP_PORT} in ${FILE}"
+	perl -i -ple "s/_WELL_KNOWN_HTTP_PORT_/${EXTERNAL_HTTP_PORT}/g" ${FILE}
+
+	echo "Updating instances of _WELL_KNOWN_HTTPS_PORT_ to ${EXTERNAL_HTTPS_PORT} in ${FILE}"
+	perl -i -ple "s/_WELL_KNOWN_HTTPS_PORT_/${EXTERNAL_HTTPS_PORT}/g" ${FILE}
+
+	echo "Updating instances of _TOMCAT_SHUTDOWN_PORT_ to ${TOMCAT_SHUTDOWN_PORT} in ${FILE}"
+	perl -i -ple "s/_TOMCAT_SHUTDOWN_PORT_/${TOMCAT_SHUTDOWN_PORT}/g" ${FILE}
+done

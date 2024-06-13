@@ -1,0 +1,37 @@
+#tomcat image provided from docker.io 
+FROM artifactory.itg.ti.com/docker-public/library/tomcat:9.0.82-jdk17-temurin-jammy
+
+LABEL maintainer="jhumes@ti.com"
+
+ARG UID
+ARG GID
+ARG USR
+
+RUN groupadd -g "${GID}" "${USR}"
+RUN useradd -u "${UID}" -g "${GID}" -d /usr/local/tomcat -s /bin/bash ${USR}
+RUN cp -av /usr/local/tomcat/webapps.dist/manager /usr/local/tomcat/webapps/
+COPY dist/manager-context.xml /usr/local/tomcat/webapps/manager/META-INF/context.xml
+COPY dist/manager-web.xml /usr/local/tomcat/webapps/manager/WEB-INF/web.xml
+RUN rm -fr /usr/local/tomcat/webapps/examples
+RUN rm -fr /usr/local/tomcat/webapps/docs
+RUN mkdir /usr/local/tomcat/properties
+RUN chown -R ${USR}:${USR} /usr/local/tomcat
+RUN chown -R ${USR}:${USR} /opt/java
+RUN apt-get update --option Acquire::HTTP::Proxy=http://webproxy.ext.ti.com:80
+RUN apt-get -y install sudo  --option Acquire::HTTP::Proxy=http://webproxy.ext.ti.com:80
+RUN apt-get -y install vim --option Acquire::HTTP::Proxy=http://webproxy.ext.ti.com:80
+RUN apt-get -y install git --option Acquire::HTTP::Proxy=http://webproxy.ext.ti.com:80
+RUN sed -i 's/%sudo.*$/%sudo  ALL=(ALL) NOPASSWD: ALL/g' /etc/sudoers
+RUN usermod -aG sudo ${USR}
+
+RUN mkdir /usr/local/tomcat/tempcerts
+RUN openssl s_client -connect ubid-prod.itg.ti.com:636 </dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /usr/local/tomcat/tempcerts/ubid-prod.itg.ti.com.crt; ls -lart /usr/local/tomcat/tempcerts 
+RUN cd $JAVA_HOME/conf/security \
+    && keytool -cacerts -storepass changeit -noprompt -trustcacerts -importcert -alias ldapcert -file /usr/local/tomcat/tempcerts/ubid-prod.itg.ti.com.crt
+
+USER ${USR}
+
+EXPOSE _WELL_KNOWN_HTTP_PORT_
+EXPOSE _WELL_KNOWN_HTTPS_PORT_
+
+#CMD ["catalina.sh", "run"]
