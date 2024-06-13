@@ -150,7 +150,7 @@ generate_start_option_lines(){
                         echo "-v ${FULL_HOST_LOCATION}:${GUEST_LOCATION} "
                 fi
 
-                if [ ${FROM} = "PORT" ]; then
+                if [ ${TYPE} = "PORT" ]; then
                         HOST_PORT=`echo ${MAPPING} | awk -F \| '{print $2}'`
                         GUEST_PORT=`echo ${MAPPING} | awk -F \| '{print $3}'`
                         echo "-p ${HOST_PORT}:${GUEST_PORT} "
